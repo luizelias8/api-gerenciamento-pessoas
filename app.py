@@ -9,8 +9,11 @@ app = Flask(__name__)
 # Garante que o banco de dados e a tabela existam ao iniciar o servidor
 criar_tabela()
 
+# Prefixo para versionamento
+VERSAO_API = '/v1'
+
 # Rota GET para listar todas as pessoas
-@app.route('/pessoas', methods=['GET'])
+@app.route(f'{VERSAO_API}/pessoas', methods=['GET'])
 def listar_pessoas():
     limite = request.args.get('limite', type=int)
     nome = request.args.get('nome') # Obtém o nome do parâmetro de query (opcional)
@@ -18,7 +21,7 @@ def listar_pessoas():
     return jsonify(pessoas), 200
 
 # Rota POST para criar uma nova pessoa
-@app.route('/pessoas', methods=['POST'])
+@app.route(f'{VERSAO_API}/pessoas', methods=['POST'])
 def criar_pessoa():
     try:
         # Tenta validar os dados usando o modelo Pessoa
@@ -42,7 +45,7 @@ def criar_pessoa():
         }), 400
 
 # Rota GET para buscar uma pessoa pelo ID
-@app.route('/pessoas/<int:id>', methods=['GET'])
+@app.route(f'{VERSAO_API}/pessoas/<int:id>', methods=['GET'])
 def obter_pessoa(id):
     pessoa = buscar_pessoa_por_id(id)
 
@@ -52,7 +55,7 @@ def obter_pessoa(id):
     return jsonify({'erro', f'Pessoa com ID {id} não encontrada.'}), 404
 
 # Rota DELETE para deletar uma pessoa pelo ID
-@app.route('/pessoas/<int:id>', methods=['DELETE'])
+@app.route(f'{VERSAO_API}/pessoas/<int:id>', methods=['DELETE'])
 def deletar_pessoa(id):
     try:
         deletar_pessoa_banco(id)
@@ -61,7 +64,7 @@ def deletar_pessoa(id):
         return jsonify({'erro': str(e)}), 404
 
 # Rota PUT para editar uma pessoa
-@app.route('/pessoas/<int:id>', methods=['PUT'])
+@app.route(f'{VERSAO_API}/pessoas/<int:id>', methods=['PUT'])
 def editar_pessoa(id):
     try:
         # Tenta validar os dados usando o modelo Pessoa
