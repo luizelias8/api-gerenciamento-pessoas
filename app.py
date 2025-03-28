@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from banco_dados import *
 from modelos import Pessoa
+from pydantic import ValidationError
 
 # Inicializa o aplicativo Flask
 app = Flask(__name__)
@@ -18,17 +19,26 @@ def listar_pessoas():
 # Rota POST para criar uma nova pessoa
 @app.route('/pessoas', methods=['POST'])
 def criar_pessoa():
-    dados = request.get_json()
-    pessoa = Pessoa(**dados)
+    try:
+        # Tenta validar os dados usando o modelo Pessoa
+        dados = request.get_json()
+        pessoa = Pessoa(**dados)
 
-    id_pessoa = criar_pessoa_banco(
-        nome=pessoa.nome,
-        idade=pessoa.idade,
-        sexo=pessoa.sexo,
-        email=pessoa.email
-    )
+        id_pessoa = criar_pessoa_banco(
+            nome=pessoa.nome,
+            idade=pessoa.idade,
+            sexo=pessoa.sexo,
+            email=pessoa.email
+        )
 
-    return jsonify({'id': id_pessoa, **dados}), 201
+        return jsonify({'id': id_pessoa, **dados}), 201
+
+    except ValidationError as e:
+        # Retorna os erros de validação de forma amigável
+        return jsonify({
+            'erro': 'Dados inválidos',
+            'detalhes': e.errors()
+        }), 400
 
 # Rota GET para buscar uma pessoa pelo ID
 @app.route('/pessoas/<int:id>', methods=['GET'])
@@ -52,14 +62,28 @@ def deletar_pessoa(id):
 # Rota PUT para editar uma pessoa
 @app.route('/pessoas/<int:id>', methods=['PUT'])
 def editar_pessoa(id):
-    dados = request.get_json()
-    pessoa = Pessoa(**dados)
-
     try:
-        editar_pessoa_banco(id, pessoa.nome, pessoa.idade, pessoa.sexo, pessoa.email)
+        # Tenta validar os dados usando o modelo Pessoa
+        dados = request.get_json()
+        pessoa = Pessoa(**dados)
+
+        editar_pessoa_banco(
+            id,
+            pessoa.nome,
+            pessoa.idade,
+            pessoa.sexo,
+            pessoa.email
+        )
         return jsonify({'mensagem': 'Pessoa atualizada com sucesso!'}), 200
+
+    except ValidationError as e:
+        # Retorna os erros de validação de forma amigável
+        return jsonify({
+            'erro': 'Dados inválidos',
+            'detalhes': e.errors()
+        }), 400
     except Exception as e:
-        return jsonify({'erro': f'Erro ao atualizar pessoa: {str(e)}'}), 400
+        return jsonify({'erro': f'Erro ao atualizar pessoa: {str(e)}'})
 
 # Executa o servidor Flask
 if __name__ == '__main__':
