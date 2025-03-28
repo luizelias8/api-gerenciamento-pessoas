@@ -80,18 +80,29 @@ def popular_tabela():
     print("Tabela 'pessoas' populada com sucesso!")
 
 # Função para listar as pessoas no banco de dados
-def listar_pessoas_banco(limite: int = None):
+def listar_pessoas_banco(limite: int = None, nome: str = None):
     # Conecta ao banco de dados PostgreSQL
     conexao = obter_conexao_bd()
 
     # Cria um cursor para executar comandos SQL
     cursor = conexao.cursor()
 
-    # Se não for passado um limite, consulta todas as pessoas
+    # Consulta base
+    consulta = 'SELECT * FROM pessoas'
+    parametros = []
+
+    # Adiciona cláusula WHERE se o nome for informado
+    if nome:
+        consulta += ' WHERE nome ILIKE %s'
+        parametros.append(f'%{nome}%') # Utiliza ILIKE para busca case-insensitive
+
+    # Adiciona limite se fornecido
     if limite is not None:
-        cursor.execute('SELECT * FROM pessoas LIMIT %s', (limite,))
-    else:
-        cursor.execute('SELECT * FROM pessoas')
+        consulta += ' LIMIT %s'
+        parametros.append(limite)
+
+    # Executa a consulta SQL com os parâmetros
+    cursor.execute(consulta, tuple(parametros))
 
     # Recupera todas as linhas do resultado da consulta
     pessoas = cursor.fetchall()

@@ -13,7 +13,8 @@ criar_tabela()
 @app.route('/pessoas', methods=['GET'])
 def listar_pessoas():
     limite = request.args.get('limite', type=int)
-    pessoas = listar_pessoas_banco(limite)
+    nome = request.args.get('nome') # Obtém o nome do parâmetro de query (opcional)
+    pessoas = listar_pessoas_banco(limite, nome)
     return jsonify(pessoas), 200
 
 # Rota POST para criar uma nova pessoa
